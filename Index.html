@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QR Employee Scanner (One Scan Only)</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background: #f8f9fa;
+            padding: 20px;
+        }
+
+        #reader {
+            width: 100%;
+            max-width: 400px;
+            margin: auto;
+        }
+
+        .log-entry {
+            border-bottom: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container text-center">
+        <h2 class="mb-3">QR Employee Verification (One Scan Only)</h2>
+
+        <div id="reader" class="border rounded mb-3"></div>
+        <h5 id="result">Scan a QR code...</h5>
+
+        <div class="d-flex flex-wrap justify-content-center gap-2 mt-2">
+            <button id="btnImport" class="btn btn-sm btn-primary">📁 Import Employees</button>
+            <button id="btnClear" class="btn btn-sm btn-danger">🧹 Clear Logs</button>
+            <button id="btnDownload" class="btn btn-sm btn-success">⬇️ Download Logs</button>
+        </div>
+
+        <input type="file" id="fileInput" accept=".json" hidden>
+
+        <hr>
+        <h4>Scanned Employees</h4>
+        <h5 id="counter">Total Scanned: 0 / 0 Employees</h5>
+        <div id="logs" class="text-start"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
