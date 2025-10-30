@@ -45,7 +45,30 @@
         <h5 id="counter">Total Scanned: 0 / 0 Employees</h5>
         <div id="logs" class="text-start"></div>
     </div>
+    <!-- with firebase code-->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-    <script src="script.js"></script>
+        // ✅ Paste your Firebase config here
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOooFnNZKQpWztLhAeuAv868i5bQdKQKY",
+            authDomain: "qrscanner-521eb.firebaseapp.com",
+            databaseURL: "https://qrscanner-521eb-default-rtdb.firebaseio.com",
+            projectId: "qrscanner-521eb",
+            storageBucket: "qrscanner-521eb.firebasestorage.app",
+            messagingSenderId: "734001019385",
+            appId: "1:734001019385:web:7f8540e2f28d8f3d6e6528",
+            measurementId: "G-LWT5ZECTCZ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.sharedDB = db; // make available globally
+    </script>
+    <!-- end firebase code-->
+
+    <script src="script2.js"></script>
 </body>
 </html>
