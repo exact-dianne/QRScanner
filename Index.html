@@ -45,12 +45,15 @@
         <h5 id="counter">Total Scanned: 0 / 0 Employees</h5>
         <div id="logs" class="text-start"></div>
     </div>
-    <!-- with firebase code-->
+
+    <!-- ✅ Main Firebase + QR Scanner Script -->
     <script type="module">
+
+        // --- Firebase imports ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-        // ✅ Paste your Firebase config here
+        // --- ✅ YOUR FIREBASE CONFIG HERE ---
         const firebaseConfig = {
             apiKey: "AIzaSyCOooFnNZKQpWztLhAeuAv868i5bQdKQKY",
             authDomain: "qrscanner-521eb.firebaseapp.com",
@@ -65,10 +68,101 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        window.sharedDB = db; // make available globally
+        window.addEventListener("DOMContentLoaded", async () => {
+            let employees = [];
+            let html5QrCode;
+            let lastScan = "";
+
+            async function loadEmployees() {
+                try {
+                    const snapshot = await get(child(ref(db), "employees"));
+                    if (snapshot.exists()) {
+                        employees = Object.values(snapshot.val());
+                        console.log(`Loaded ${employees.length} employees`);
+                        updateCounter();
+                    } else {
+                        console.warn("⚠️ No employees found in Firebase");
+                    }
+                } catch (err) {
+                    console.error("Error loading employees:", err);
+                }
+            }
+
+            async function processScan(id) {
+                const emp = employees.find(e => e.id === id);
+                const resultEl = document.getElementById("result");
+                if (!emp) {
+                    resultEl.innerHTML = `❌ Not found: ${id}`;
+                    return;
+                }
+
+                const scanRef = ref(db, "scans/" + id);
+                const existing = await get(scanRef);
+                if (existing.exists()) {
+                    resultEl.innerHTML = `⚠️ Already scanned: ${emp.name} (${emp.department})`;
+                    return;
+                }
+
+                await set(scanRef, {
+                    employee_id: emp.id,
+                    name: emp.name,
+                    department: emp.department,
+                    timestamp: new Date().toISOString(),
+                });
+
+                resultEl.innerHTML = `✅ Verified: ${emp.name} (${emp.department})`;
+                showLogs();
+            }
+
+            async function showLogs() {
+                const snapshot = await get(ref(db, "scans"));
+                const logs = snapshot.exists() ? Object.values(snapshot.val()) : [];
+                const logsDiv = document.getElementById("logs");
+                logsDiv.innerHTML = logs.map(r =>
+                    `<div class="log-entry"><strong>${r.timestamp}</strong> — ${r.employee_id} - ${r.name}</div>`
+                ).join("");
+                updateCounter(logs.length);
+            }
+
+            function updateCounter(scanned = null) {
+                const counter = document.getElementById("counter");
+                counter.innerText = `Total Scanned: ${scanned ?? 0} / ${employees.length} Employees`;
+            }
+
+            function startScanner() {
+                html5QrCode = new Html5Qrcode("reader");
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: 250 },
+                    async decodedText => {
+                        const id = parseQR(decodedText);
+                        if (id === lastScan) return;
+                        lastScan = id;
+                        await processScan(id);
+                        setTimeout(() => (lastScan = ""), 2000);
+                    }
+                ).catch(() => {
+                    document.getElementById("result").innerText = "❌ Camera access failed.";
+                });
+            }
+
+            function parseQR(txt) {
+                try {
+                    if (txt.startsWith("EMP:")) return txt.slice(4);
+                    const obj = JSON.parse(txt);
+                    if (obj.id) return obj.id;
+                } catch { }
+                return txt.trim();
+            }
+
+            document.getElementById("btnDownload").onclick = showLogs;
+
+            await loadEmployees();
+            startScanner();
+            await showLogs();
+        });
     </script>
     <!-- end firebase code-->
-
-    <script src="script2.js"></script>
+    <!--<script src="script2.js"></script>-->
 </body>
 </html>
